@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Memodrop</string>
+    <string name="description">Description</string>
+    <string name="title">Title</string>
+    <string name="save_task">Save task</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="log_in">Log in</string>
+    <string name="register">Register</string>
+    <string name="name">Name</string>
+    <string name="username">username</string>
+    <string name="confirm_password">Confirm password</string>
+</resources>
