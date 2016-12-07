@@ -8,7 +8,10 @@ import org.androidannotations.rest.spring.annotations.Body;
 import org.androidannotations.rest.spring.annotations.Get;
 import org.androidannotations.rest.spring.annotations.Header;
 import org.androidannotations.rest.spring.annotations.Headers;
+import org.androidannotations.rest.spring.annotations.Patch;
+import org.androidannotations.rest.spring.annotations.Path;
 import org.androidannotations.rest.spring.annotations.Post;
+import org.androidannotations.rest.spring.annotations.Put;
 import org.androidannotations.rest.spring.annotations.Rest;
 import org.androidannotations.rest.spring.api.MediaType;
 import org.springframework.http.converter.FormHttpMessageConverter;
@@ -23,6 +26,8 @@ import eu.execom.todolistgrouptwo.model.Task;
 import eu.execom.todolistgrouptwo.model.dto.RegisterDTO;
 import eu.execom.todolistgrouptwo.model.dto.TokenContainerDTO;
 import eu.execom.todolistgrouptwo.model.User;
+
+import static android.R.attr.id;
 
 
 @Rest(rootUrl = ApiConstants.ROOT_URL, converters = {GsonHttpMessageConverter.class,
@@ -49,4 +54,7 @@ public interface RestApi {
 
     @Post(value = ApiConstants.TASK_PATH)
     Task createTask(@Body Task task);
+
+    @Put(value = ApiConstants.EDIT_TASK_PATH)
+    Task editTask(@Path String id, @Body Task task);
 }

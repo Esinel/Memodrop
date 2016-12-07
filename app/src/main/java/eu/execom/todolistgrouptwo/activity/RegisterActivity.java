@@ -19,12 +19,14 @@ import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.rest.spring.annotations.RestService;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 
 import eu.execom.todolistgrouptwo.R;
 import eu.execom.todolistgrouptwo.api.RestApi;
 import eu.execom.todolistgrouptwo.database.wrapper.UserDAOWrapper;
 import eu.execom.todolistgrouptwo.model.User;
 import eu.execom.todolistgrouptwo.model.dto.RegisterDTO;
+import eu.execom.todolistgrouptwo.util.InputValidator;
 import eu.execom.todolistgrouptwo.util.NetworkingUtils;
 import okhttp3.OkHttpClient;
 
@@ -72,8 +74,10 @@ public class RegisterActivity extends AppCompatActivity {
             loginIntent.putExtra("password", registerDTO.getPassword());
             setResult(RESULT_OK, loginIntent);
             finish();
-        } catch (HttpClientErrorException e) {
-            showMessage();
+        }catch (ResourceAccessException e){
+            showNetworkError();
+        }catch (HttpClientErrorException e) {
+            showRegisterError();
         }
     }
 
@@ -92,15 +96,15 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     @UiThread
-    void showMessage(){
-        Toast.makeText(this, "Something went wrong. Try again later.", Toast.LENGTH_LONG).show();
+    void showNetworkError(){
+        Toast.makeText(this, "Check your internet connection.", Toast.LENGTH_LONG).show();
     }
 
 
     private boolean validRegistrationInfo(String email, String password, String confirmPassword){
         Boolean valid = true;
         Boolean emailValid = Patterns.EMAIL_ADDRESS.matcher((CharSequence) email).matches();
-        Boolean passwordValid = isValidPassword(password);
+        Boolean passwordValid = InputValidator.isValidPassword(password);
         Boolean confirmPasswordValid = password.equals(confirmPassword);
 
         if (!emailValid){
@@ -118,13 +122,6 @@ public class RegisterActivity extends AppCompatActivity {
         return valid;
     }
 
-    // validating password
-    private boolean isValidPassword(String pass) {
-        final String pattern = "^(?=.*[0-9])(?=.*[a-z])(?=\\S+$).{6,}$";
-        if (pass != null && pass.length() > 6 && pass.matches(pattern)) {
-            return true;
-        }
-        return false;
-    }
+
 
 }

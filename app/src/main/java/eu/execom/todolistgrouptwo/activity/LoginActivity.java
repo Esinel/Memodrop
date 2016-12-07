@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.util.Patterns;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -17,11 +18,16 @@ import org.androidannotations.annotations.OnActivityResult;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.rest.spring.annotations.RestService;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
+
+import java.io.IOError;
 
 import eu.execom.todolistgrouptwo.R;
 import eu.execom.todolistgrouptwo.api.RestApi;
 import eu.execom.todolistgrouptwo.database.wrapper.UserDAOWrapper;
 import eu.execom.todolistgrouptwo.model.dto.TokenContainerDTO;
+import eu.execom.todolistgrouptwo.util.InputValidator;
 import eu.execom.todolistgrouptwo.util.NetworkingUtils;
 
 @EActivity(R.layout.activity_login)
@@ -45,45 +51,51 @@ public class LoginActivity extends AppCompatActivity {
     RestApi restApi;
 
 
-
     @EditorAction(R.id.password)
     @Click
     void login() {
-        final String username = this.email.getText().toString();
+        final String email = this.email.getText().toString();
         final String password = this.password.getText().toString();
 
-        tryLogin(username, password);
+        if (validLoginInfo(email, password)) {
+            tryLogin(email, password);
+        }
+
     }
 
     @Background
-    void tryLogin(String username, String password) {
+    void tryLogin(String email, String password) {
 
         try {
             final TokenContainerDTO tokenContainerDTO =
-                    restApi.login(NetworkingUtils.packUserLoginCredentials(username, password));
+                    restApi.login(NetworkingUtils.packUserLoginCredentials(email, password));
 
             loginSuccess(tokenContainerDTO.getAccessToken());
-        } catch (Exception e) {
+        } catch (ResourceAccessException e) {
+            showNetworkError();
+        } catch (HttpClientErrorException e){
             showLoginError();
-            Log.e(TAG, e.getMessage(), e);
         }
 
-        /*
-        if (user == null) {
-            showLoginError();
-        } else {
-            loginSuccess(user.getId());
-        }
-        */
     }
 
     @UiThread
     void showLoginError() {
         Toast.makeText(this,
-                "Invalid username and password combination.",
+                "Check your login credentials",
                 Toast.LENGTH_SHORT)
                 .show();
     }
+
+    @UiThread
+    void showNetworkError() {
+        Toast.makeText(this,
+                "Check your internet connection",
+                Toast.LENGTH_SHORT)
+                .show();
+    }
+
+
 
     @Click
     void register() {
@@ -109,4 +121,25 @@ public class LoginActivity extends AppCompatActivity {
         setResult(RESULT_OK, intent);
         finish();
     }
+
+
+    private boolean validLoginInfo(String email, String password) {
+        Boolean valid = true;
+        Boolean emailValid = Patterns.EMAIL_ADDRESS.matcher((CharSequence) email).matches();
+        Boolean passwordValid = InputValidator.isValidPassword(password);
+
+        if (!emailValid){
+            this.email.setError("Invalid email format");
+            valid = false;
+        }
+        if (!passwordValid) {
+            this.password.setError("Password has to contain min 6 characters with at least 1 number");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+
+
 }

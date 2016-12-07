@@ -22,6 +22,7 @@ import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.ItemClick;
 import org.androidannotations.annotations.OnActivityResult;
 import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.OptionsMenu;
@@ -31,6 +32,7 @@ import org.androidannotations.annotations.sharedpreferences.Pref;
 import org.androidannotations.rest.spring.annotations.RestService;
 import org.springframework.web.client.RestClientException;
 
+import java.util.Iterator;
 import java.util.List;
 
 import eu.execom.todolistgrouptwo.R;
@@ -59,6 +61,7 @@ public class HomeActivity extends AppCompatActivity {
      * Used for identifying results from different activities.
      */
     protected static final int ADD_TASK_REQUEST_CODE = 42;
+    protected static final int EDIT_TASK_REQUEST_CODE = 43;
     protected static final int LOGIN_REQUEST_CODE = 420; // BLAZE IT
 
     /**
@@ -167,16 +170,17 @@ public class HomeActivity extends AppCompatActivity {
 
             }
         });
-
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //Toast.makeText(HomeActivity.this,"Klik na task",Toast.LENGTH_SHORT).show();
-                Toast.makeText(HomeActivity.this,parent.getAdapter().getItem(position).toString(),Toast.LENGTH_SHORT).show();
-                //openTaskActivity();
-            }
-        });
     }
+
+    @ItemClick(R.id.listView)
+    void taskClicked(Task task){
+        final Gson gson = new Gson();
+        String serializedTask = gson.toJson(task);
+        Intent editTaskIntent = new Intent(HomeActivity.this, EditTaskActivity_.class);
+        editTaskIntent.putExtra("task", serializedTask);
+        //editTaskIntent.putExtra("taskOrderNumber", position);
+        startActivityForResult(editTaskIntent, EDIT_TASK_REQUEST_CODE);
+    };
 
     /**
      * Called when the {@link FloatingActionButton FloatingActionButton} is clicked.
@@ -195,7 +199,7 @@ public class HomeActivity extends AppCompatActivity {
      */
     @OnActivityResult(ADD_TASK_REQUEST_CODE)
     @Background
-    void onResult(int resultCode, @OnActivityResult.Extra String task) {
+    void onAddTaskResult(int resultCode, @OnActivityResult.Extra String task) {
         if (resultCode == RESULT_OK) {
 //            Toast.makeText(this, task, Toast.LENGTH_SHORT).show();
             final Gson gson = new Gson();
@@ -210,10 +214,42 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
+    @OnActivityResult(EDIT_TASK_REQUEST_CODE)
+    @Background
+    void onEditTaskResult(int resultCode, @OnActivityResult.Extra String task){
+        if (resultCode == RESULT_OK) {
+            final Gson gson = new Gson();
+            final Task editedTask = gson.fromJson(task, Task.class);
+            try {
+                final String taskId = String.valueOf(editedTask.getId());
+                final Task newNewTask = restApi.editTask(taskId, editedTask);
+                onTaskEdited(newNewTask);
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage(), e);
+            }
+        }
+    }
+
     @UiThread
     void onTaskCreated(Task task) {
         tasks.add(task);
         adapter.addTask(task);
+    }
+
+    @UiThread
+    void onTaskEdited(Task editedTask){
+        int index = 0;
+
+
+        for (Task taskListItem : tasks){
+            if (taskListItem.getId() == editedTask.getId()){
+                index = tasks.indexOf(taskListItem);
+            }
+        }
+
+        tasks.remove(index);
+        tasks.add(editedTask);
+        adapter.setTasks(tasks);
     }
 
     @OnActivityResult(LOGIN_REQUEST_CODE)

@@ -29,6 +29,12 @@ public class Task {
         this.description = description;
     }
 
+    public Task(String title, String description, boolean active) {
+        this.title = title;
+        this.description = description;
+        this.finished = active;
+    }
+
     public String getTitle() {
         return title;
     }

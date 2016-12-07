@@ -15,4 +15,6 @@ public class ApiConstants {
     public static final String LOGOUT_PATH = "/api/account/logout";
 
     public static final String TASK_PATH = "/api/todotasks";
+
+    public static final String EDIT_TASK_PATH = "/api/todotasks/{id}";
 }
