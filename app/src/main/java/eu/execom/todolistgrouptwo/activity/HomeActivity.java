@@ -220,7 +220,13 @@ public class HomeActivity extends AppCompatActivity {
     @OnActivityResult(EDIT_TASK_REQUEST_CODE)
     @Background
     void onEditTaskResult(int resultCode, @OnActivityResult.Extra String task, @OnActivityResult.Extra String taskOrderNumber){
-        int taskPos = Integer.parseInt(taskOrderNumber);
+        int taskPos = 0;
+        try {
+            taskPos = Integer.parseInt(taskOrderNumber);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+
         if (resultCode == RESULT_OK) {
             final Gson gson = new Gson();
             final Task editedTask = gson.fromJson(task, Task.class);
@@ -257,10 +263,12 @@ public class HomeActivity extends AppCompatActivity {
 
         updateView(taskPosition, editedTask);
         adapter.setTasks(tasks);
+        adapter.notifyDataSetChanged();
 
     }
 
-    private void updateView(int index, Task task){
+    @UiThread
+    public void updateView(int index, Task task){
         View v = listView.getChildAt(index -
                 listView.getFirstVisiblePosition());
 
