@@ -5,7 +5,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Patterns;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.facebook.stetho.okhttp3.StethoInterceptor;
@@ -48,12 +50,17 @@ public class RegisterActivity extends AppCompatActivity {
     @ViewById
     EditText confirmPassword;
 
+    @ViewById
+    RelativeLayout loadingPanel;
+
     @RestService
     RestApi restApi;
 
     @EditorAction(R.id.confirmPassword)
     @Click
     void register() {
+        loadingPanel.setVisibility(View.VISIBLE);
+
         final String email = this.email.getText().toString();
         final String password = this.password.getText().toString();
         final String confirmPassword = this.confirmPassword.getText().toString();
@@ -61,6 +68,8 @@ public class RegisterActivity extends AppCompatActivity {
         if (validRegistrationInfo(email, password, confirmPassword)){
             final RegisterDTO registerDTO = new RegisterDTO(email, password, confirmPassword);
             registerUser(registerDTO);
+        }else{
+            loadingPanel.setVisibility(View.GONE);
         }
     }
 
@@ -92,12 +101,15 @@ public class RegisterActivity extends AppCompatActivity {
 
     @UiThread
     void showRegisterError() {
-        email.setError("Username already exists.");
+        email.setError("Username already exists");
+        Toast.makeText(this, "Username already exists", Toast.LENGTH_LONG).show();
+        loadingPanel.setVisibility(View.GONE);
     }
 
     @UiThread
     void showNetworkError(){
-        Toast.makeText(this, "Check your internet connection.", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Check your internet connection", Toast.LENGTH_LONG).show();
+        loadingPanel.setVisibility(View.GONE);
     }
 
 

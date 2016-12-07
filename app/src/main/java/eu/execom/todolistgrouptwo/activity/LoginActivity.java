@@ -5,7 +5,9 @@ import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.Patterns;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 
@@ -47,6 +49,9 @@ public class LoginActivity extends AppCompatActivity {
     @ViewById
     EditText password;
 
+    @ViewById
+    RelativeLayout loadingPanel;
+
     @RestService
     RestApi restApi;
 
@@ -54,11 +59,15 @@ public class LoginActivity extends AppCompatActivity {
     @EditorAction(R.id.password)
     @Click
     void login() {
+        loadingPanel.setVisibility(View.VISIBLE);
+
         final String email = this.email.getText().toString();
         final String password = this.password.getText().toString();
 
         if (validLoginInfo(email, password)) {
             tryLogin(email, password);
+        }else{
+            loadingPanel.setVisibility(View.GONE);
         }
 
     }
@@ -85,6 +94,7 @@ public class LoginActivity extends AppCompatActivity {
                 "Check your login credentials",
                 Toast.LENGTH_SHORT)
                 .show();
+        loadingPanel.setVisibility(View.GONE);
     }
 
     @UiThread
@@ -93,6 +103,7 @@ public class LoginActivity extends AppCompatActivity {
                 "Check your internet connection",
                 Toast.LENGTH_SHORT)
                 .show();
+        loadingPanel.setVisibility(View.GONE);
     }
 
 
@@ -115,6 +126,8 @@ public class LoginActivity extends AppCompatActivity {
 
     @UiThread
     void loginSuccess(String accessToken) {
+        loadingPanel.setVisibility(View.GONE);
+
         final Intent intent = new Intent();
         intent.putExtra("token", accessToken);
 
