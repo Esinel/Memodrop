@@ -29,6 +29,9 @@ public class TaskItemView extends LinearLayout {
     @ViewById
     TextView description;
 
+    @ViewById
+    LinearLayout taskBackground;
+
     public TaskItemView(Context context) {
         super(context);
     }
@@ -43,6 +46,9 @@ public class TaskItemView extends LinearLayout {
         title.setText(task.getTitle());
         description.setText(task.getDescription());
 
+        if(task.isFinished()){
+            taskBackground.setAlpha((float) 0.4666666);
+        }
         return this;
     }
 }

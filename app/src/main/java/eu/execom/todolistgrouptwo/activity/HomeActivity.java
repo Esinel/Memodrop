@@ -12,7 +12,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -173,12 +175,14 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     @ItemClick(R.id.listView)
-    void taskClicked(Task task){
+    void taskClicked(int position){
+        Task task = adapter.getItem(position);
+
         final Gson gson = new Gson();
         String serializedTask = gson.toJson(task);
         Intent editTaskIntent = new Intent(HomeActivity.this, EditTaskActivity_.class);
         editTaskIntent.putExtra("task", serializedTask);
-        //editTaskIntent.putExtra("taskOrderNumber", position);
+        editTaskIntent.putExtra("taskOrderNumber", String.valueOf(position));
         startActivityForResult(editTaskIntent, EDIT_TASK_REQUEST_CODE);
     };
 
@@ -187,7 +191,6 @@ public class HomeActivity extends AppCompatActivity {
      */
     @Click
     void addTask() {
-        Log.i(TAG, "Add task clicked!");
         AddTaskActivity_.intent(this).startForResult(ADD_TASK_REQUEST_CODE);
     }
 
@@ -216,14 +219,14 @@ public class HomeActivity extends AppCompatActivity {
 
     @OnActivityResult(EDIT_TASK_REQUEST_CODE)
     @Background
-    void onEditTaskResult(int resultCode, @OnActivityResult.Extra String task){
+    void onEditTaskResult(int resultCode, @OnActivityResult.Extra String task, @OnActivityResult.Extra String taskOrderNumber){
         if (resultCode == RESULT_OK) {
             final Gson gson = new Gson();
             final Task editedTask = gson.fromJson(task, Task.class);
             try {
                 final String taskId = String.valueOf(editedTask.getId());
                 final Task newNewTask = restApi.editTask(taskId, editedTask);
-                onTaskEdited(newNewTask);
+                onTaskEdited(newNewTask, Integer.getInteger(taskOrderNumber));
             } catch (Exception e) {
                 Log.e(TAG, e.getMessage(), e);
             }
@@ -237,7 +240,8 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     @UiThread
-    void onTaskEdited(Task editedTask){
+    void onTaskEdited(Task editedTask, int taskPosition){
+
         int index = 0;
 
 
@@ -249,7 +253,31 @@ public class HomeActivity extends AppCompatActivity {
 
         tasks.remove(index);
         tasks.add(editedTask);
+
+        updateView(taskPosition, editedTask);
         adapter.setTasks(tasks);
+
+    }
+
+    private void updateView(int index, Task task){
+        View v = listView.getChildAt(index -
+                listView.getFirstVisiblePosition());
+
+        if(v == null)
+            return;
+
+        TextView title = (TextView) v.findViewById(R.id.title);
+        TextView desription = (TextView) v.findViewById(R.id.description);
+        LinearLayout background = (LinearLayout) v.findViewById(R.id.taskBackground);
+
+        title.setText(task.getTitle());
+        desription.setText(task.getDescription());
+        if (task.isFinished()){
+            background.setAlpha((float) 0.4666666);
+        }else{
+            background.setAlpha((float) 1);
+        }
+
     }
 
     @OnActivityResult(LOGIN_REQUEST_CODE)

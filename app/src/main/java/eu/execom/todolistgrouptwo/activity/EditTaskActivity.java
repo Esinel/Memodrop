@@ -45,12 +45,14 @@ public class EditTaskActivity extends AppCompatActivity {
 
     @Click
     void saveTask() {
+        String taskPosition = getIntent().getStringExtra("taskOrderNumber");
         final Task task = new Task(title.getText().toString(),
                 description.getText().toString(), finished.isChecked());
         task.setId(Long.valueOf(taskId.getText().toString()));
         final Intent intent = new Intent();
         final Gson gson = new Gson();
         intent.putExtra("task", gson.toJson(task));
+        intent.putExtra("taskOrderNumber", taskPosition);
         setResult(RESULT_OK, intent);
         finish();
     }
