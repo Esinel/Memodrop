@@ -220,13 +220,14 @@ public class HomeActivity extends AppCompatActivity {
     @OnActivityResult(EDIT_TASK_REQUEST_CODE)
     @Background
     void onEditTaskResult(int resultCode, @OnActivityResult.Extra String task, @OnActivityResult.Extra String taskOrderNumber){
+        int taskPos = Integer.parseInt(taskOrderNumber);
         if (resultCode == RESULT_OK) {
             final Gson gson = new Gson();
             final Task editedTask = gson.fromJson(task, Task.class);
             try {
                 final String taskId = String.valueOf(editedTask.getId());
                 final Task newNewTask = restApi.editTask(taskId, editedTask);
-                onTaskEdited(newNewTask, Integer.getInteger(taskOrderNumber));
+                onTaskEdited(newNewTask, taskPos);
             } catch (Exception e) {
                 Log.e(TAG, e.getMessage(), e);
             }
